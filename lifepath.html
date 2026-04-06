@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>LifePath</title>
+        <link rel="stylesheet" href="life.css">
+    </head>
+    <body>
+        <div class="main-layout">
+            <div class="dashboard-wrapper">
+                <header id="top-header">
+                    <h1>LifePath</h1>
+                    <button class="btnreset" onclick="resetStats()">Reset Data</button>
+                </header>
+
+                <section id="stats-container">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="label">Money</span>
+                            <span class="value" id="money">0</span>
+                            <div class="bar-bg"><div class="fill" id="money-bar"></div></div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="label">Health</span>
+                            <span class="value" id="health">0</span>
+                            <div class="bar-bg"><div class="fill" id="health-bar"></div></div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="label">Stress</span>
+                            <span class="value" id="stress">0</span>
+                            <div class="bar-bg"><div class="fill" id="stress-bar"></div></div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="label">Happiness</span>
+                            <span class="value" id="happiness">0</span>
+                            <div class="bar-bg"><div class="fill" id="happiness-bar"></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <footer id="action-panel">
+                    <h2>Daily Decisions</h2>
+                    <div class="button-group">
+                        <button class="bt work" onclick="action('overtime')">Work Overtime</button>
+                        <button class="bt health" onclick="action('gym')">Hit the Gym</button>
+                        <button class="bt social" onclick="action('party')">Late Party</button>
+                        <button class="bt self" onclick="action('meditate')">Meditate</button>
+                    </div>
+                    <div id="log-container">
+                        <h3>Activity Feed</h3>
+                        <div class="log-scroll">
+                            <ul id="history-log"></ul>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+
+            <aside id="info-sidebar">
+                <div class="sidebar-inner" id="sidebar-content">
+                    <h3 style="color: #7070FF;">Awaiting Action</h3>
+                    <p style="color: #A0A0C0; font-size: 0.9rem;">Select a decision to see related resources.</p>
+                </div>
+            </aside>
+        </div>
+
+        <script>
+            let stats = { money: 0, health: 0, stress: 0, happiness: 0 };
+            let timerInterval;
+
+            const effects = {
+                overtime: { 
+                    money: 20, stress: 15, health: -5, happiness: -5, label: "Work Overtime",
+                    feature: `<h3>Take a Break</h3>
+                             <p style='color:#FFB86C; margin-bottom:10px;'>Productivity drop imminent.</p>
+                             <div id="break-timer" style="font-size: 2rem; color: #7070FF; font-weight: bold; margin: 10px 0;">05:00</div>
+                             <button class="btnreset" onclick="startTimer()">Start Timer</button>`
+                },
+                gym: { 
+                    money: -10, stress: -10, health: 15, happiness: 5, label: "Gym Session",
+                    feature: `<h3>Workout Coach</h3>
+                             <iframe width="100%" height="180" src="https://www.youtube.com/embed/BegW_l4IJFQ" frameborder="0" allowfullscreen></iframe>
+                             <h3 style="margin-top:15px;">Workout Music</h3>
+                             <iframe width="100%" height="180" src="https://www.youtube.com/embed/hw-xiFZiMb8" frameborder="0" allowfullscreen></iframe>`
+                },
+                party: { 
+                    money: -30, stress: -5, health: -15, happiness: 20, label: "Late Night Party",
+                    feature: `<h3 style="color: #FF5555;">⚠️ SLEEP WARNING</h3>
+                             <p style="color: #A0A0C0; font-size: 0.8rem; margin-bottom: 15px;">Est. Recovery: Poor. Productivity penalty tomorrow: -20%.</p>
+                             <h3>Party Vibes</h3>
+                             <iframe width="100%" height="180" src="https://www.youtube.com/embed/USdS2f5o2Ek" frameborder="0" allowfullscreen></iframe>`
+                },
+                meditate: { 
+                    money: 0, stress: -15, health: 5, happiness: 10, label: "Meditate",
+                    feature: `<h3>Meditation Session</h3>
+                             <iframe width="100%" height="250" src="https://www.youtube.com/embed/60Gnd8Wy0gE" frameborder="0" allowfullscreen></iframe>`
+                }
+            };
+
+            function action(type) {
+                const effect = effects[type];
+                stats.money += effect.money;
+                stats.health += effect.health;
+                stats.stress += effect.stress;
+                stats.happiness += effect.happiness;
+                limitStats();
+                updateUI();
+                addLog(effect.label);
+                updateSidebar(effect.feature);
+                clearInterval(timerInterval);
+            }
+
+            function updateSidebar(content) {
+                document.getElementById('sidebar-content').innerHTML = content;
+            }
+
+            function startTimer() {
+                clearInterval(timerInterval);
+                let time = 300;
+                const display = document.getElementById('break-timer');
+                timerInterval = setInterval(() => {
+                    let mins = Math.floor(time / 60);
+                    let secs = time % 60;
+                    display.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    if (--time < 0) clearInterval(timerInterval);
+                }, 1000);
+            }
+
+            function limitStats() {
+                const keys = ['health', 'stress', 'happiness'];
+                keys.forEach(key => stats[key] = Math.max(0, Math.min(100, stats[key])));
+                stats.money = Math.max(0, stats.money);
+            }
+
+            function updateUI() {
+                document.getElementById('money').innerText = stats.money;
+                document.getElementById('health').innerText = stats.health;
+                document.getElementById('stress').innerText = stats.stress;
+                document.getElementById('happiness').innerText = stats.happiness;
+                document.getElementById('money-bar').style.width = Math.min(100, stats.money) + "%";
+                document.getElementById('health-bar').style.width = stats.health + "%";
+                document.getElementById('stress-bar').style.width = stats.stress + "%";
+                document.getElementById('happiness-bar').style.width = stats.happiness + "%";
+            }
+
+            function addLog(label) {
+                const logList = document.getElementById('history-log');
+                const newEntry = document.createElement('li');
+                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                newEntry.innerHTML = `<strong>${time}</strong>: ${label}`;
+                logList.prepend(newEntry);
+            }
+
+            function resetStats() {
+                if(confirm("Reset data?")) {
+                    stats = { money: 0, health: 0, stress: 0, happiness: 0 };
+                    document.getElementById('history-log').innerHTML = "";
+                    document.getElementById('sidebar-content').innerHTML = "<h3 style='color: #7070FF;'>Awaiting Action</h3>";
+                    updateUI();
+                }
+            }
+            updateUI();
+        </script>
+    </body>
+</html>
